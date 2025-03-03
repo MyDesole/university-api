@@ -1,0 +1,427 @@
+{
+    "openapi": "3.0.0",
+    "info": {
+        "title": "University API",
+        "description": "API для управления университетами и студентами",
+        "version": "1.0.0"
+    },
+    "paths": {
+        "/api/v1/lessons/store": {
+            "post": {
+                "summary": "Создать урок",
+                "operationId": "31565cb028ad63aae927874246b648b5",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "name": {
+                                        "type": "string"
+                                    },
+                                    "parent_id": {
+                                        "type": "integer"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Урок создан"
+                    }
+                }
+            }
+        },
+        "/api/v1/student/all": {
+            "get": {
+                "summary": "Получить всех студентов",
+                "description": "Возвращает список всех студентов",
+                "operationId": "56cc1cfbe144a40eaf940e61bf652ace",
+                "responses": {
+                    "200": {
+                        "description": "Список студентов"
+                    }
+                }
+            }
+        },
+        "/api/v1/student/store": {
+            "post": {
+                "summary": "Добавить студента",
+                "description": "Создает нового студента",
+                "operationId": "9c6c3e8ece58c399808bd735bbb974df",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "name": {
+                                        "type": "string",
+                                        "example": "Иван Иванов"
+                                    },
+                                    "university_id": {
+                                        "type": "integer",
+                                        "example": 1
+                                    },
+                                    "course": {
+                                        "type": "integer",
+                                        "example": 1
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Студент",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/student/get/{id}": {
+            "get": {
+                "summary": "Получить студента по ID",
+                "description": "Возвращает информацию о студенте по его ID",
+                "operationId": "8523c222f144d6339c0fe10747ade05d",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID студента",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "404": {
+                        "description": "Студент не найден"
+                    }
+                }
+            }
+        },
+        "/api/v1/student/update/{id}": {
+            "patch": {
+                "summary": "Обновить информацию о студенте",
+                "description": "Обновляет информацию о студенте по его ID",
+                "operationId": "b456cd82d1dda02f6c31a52f91bcebb7",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID студента",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "name": {
+                                        "type": "string",
+                                        "example": "Иван Иванов"
+                                    },
+                                    "university_id": {
+                                        "type": "integer",
+                                        "example": 1
+                                    },
+                                    "course": {
+                                        "type": "integer",
+                                        "example": 1
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Информация о студенте обновлена"
+                    },
+                    "404": {
+                        "description": "Студент не найден"
+                    }
+                }
+            }
+        },
+        "/api/v1/student/delete/{id}": {
+            "delete": {
+                "summary": "Удалить студента",
+                "description": "Удаляет студента по его ID",
+                "operationId": "2e09fd2fc96198dceceef582855a0863",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID студента",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Студент удален",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Успешно!"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Студент не найден"
+                    }
+                }
+            }
+        },
+        "/api/v1/student/search/{searchTerm}": {
+            "get": {
+                "summary": "Поиск студентов",
+                "description": "Ищет студентов по заданному термину",
+                "operationId": "b7c1ae521f361fbaeeb73088c144d3ab",
+                "parameters": [
+                    {
+                        "name": "searchTerm",
+                        "in": "path",
+                        "description": "Термин для поиска",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Список студентов",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/student/visit/{studentId}": {
+            "post": {
+                "summary": "Добавить посещение студента",
+                "description": "Добавляет запись о посещении студентом университета",
+                "operationId": "4fb339e865ec40f392bd7bceb1608d45",
+                "parameters": [
+                    {
+                        "name": "studentId",
+                        "in": "path",
+                        "description": "ID студента",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": false,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "university_id": {
+                                        "type": "integer",
+                                        "example": 1
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Посещение добавлено",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Успех!"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Неверный student_id"
+                    },
+                    "500": {
+                        "description": "Ошибка при вставке данных"
+                    }
+                }
+            }
+        },
+        "/api/v1/student/visit/{studentId?}": {
+            "get": {
+                "summary": "Получить посещения студента",
+                "description": "Возвращает список посещений студента. Если studentId не указан, возвращает все посещения",
+                "operationId": "80a6da462cd827ec8839aad5f630bfb2",
+                "parameters": [
+                    {
+                        "name": "studentId",
+                        "in": "path",
+                        "description": "ID студента",
+                        "required": false,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Список посещений",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/university/all": {
+            "get": {
+                "summary": "Получить все университеты",
+                "description": "Возвращает список всех университеты",
+                "operationId": "cb963a8bf3a02d868bb7d0c07acabe63",
+                "responses": {
+                    "200": {
+                        "description": "Список университетов",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/university/get/{id}": {
+            "get": {
+                "summary": "Получить университет по ID",
+                "description": "Возвращает информацию о университете по его ID",
+                "operationId": "73dd0ce35b617d7cd7c49ab0b1a43dca",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID университета",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Информация о университете"
+                    },
+                    "404": {
+                        "description": "Университет не найден"
+                    }
+                }
+            }
+        },
+        "/api/v1/university/store": {
+            "post": {
+                "summary": "Добавить университет",
+                "description": "Создает новый университет",
+                "operationId": "3354713d4fe382eca6b470704bdb20cb",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "name": {
+                                        "type": "string",
+                                        "example": "Иван Иванов"
+                                    },
+                                    "alpha_two_code": {
+                                        "type": "string",
+                                        "example": "RU"
+                                    },
+                                    "county": {
+                                        "type": "string",
+                                        "example": "Russia"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Университет добавлен"
+                    }
+                }
+            }
+        }
+    },
+    "components": {
+        "schemas": {
+            "StudentVisit": {
+                "properties": {
+                    "student_id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "university_id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "example": "2023-10-01 12:00:00"
+                    }
+                },
+                "type": "object"
+            }
+        }
+    }
+}

@@ -1,0 +1,108 @@
+version: '3.8'
+
+services:
+  nginx:
+    build: ./nginx
+    ports:
+      - "80:80"
+    depends_on:
+      - laravel
+    volumes:
+      - ./laravel/src:/var/www/html
+    networks:
+      - microservices-network
+
+  laravel:
+    build: ./laravel
+    volumes:
+      - ./laravel/src:/var/www/html
+    networks:
+      - microservices-network
+
+
+  postgres:
+    image: postgres:latest
+    environment:
+      POSTGRES_USER: laravel
+      POSTGRES_PASSWORD: secret
+      POSTGRES_DB: laravel
+    ports:
+      - "5432:5432"
+    networks:
+      - microservices-network
+
+  redis:
+    build: ./redis
+    networks:
+      - microservices-network
+
+  clickhouse:
+    build: ./clickhouse
+    environment:
+      - CLICKHOUSE_USER=mydesole
+      - CLICKHOUSE_PASSWORD=1008asdt
+    networks:
+      - microservices-network
+
+  meilisearch:
+    image: getmeili/meilisearch:latest
+    container_name: meilisearch
+    command:
+      - meilisearch
+      - --experimental-enable-metrics
+    ports:
+      - "7700:7700"
+    networks:
+      - microservices-network
+
+  kafka:
+    image: bitnami/kafka:latest
+    environment:
+      KAFKA_CFG_ZOOKEEPER_CONNECT: zookeeper:2181
+      ALLOW_PLAINTEXT_LISTENER: "yes"  # Разрешить незашифрованное соединение
+    ports:
+      - "9092:9092"
+    depends_on:
+      - zookeeper
+    networks:
+      - microservices-network
+
+  zookeeper:
+    image: bitnami/zookeeper:latest
+    environment:
+      ALLOW_ANONYMOUS_LOGIN: "yes"  # Разрешить анонимный доступ
+    ports:
+      - "2181:2181"
+    networks:
+      - microservices-network
+
+  prometheus:
+    build: ./prometheus
+    ports:
+      - "9090:9090"
+    networks:
+      - microservices-network
+
+  grafana:
+    build: ./grafana
+    ports:
+      - "3000:3000"
+    networks:
+      - microservices-network
+
+  swagger-ui:
+    image: swaggerapi/swagger-ui
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./laravel/src/storage/api-docs:/usr/share/nginx/html/api-docs
+    environment:
+      API_URL: /api-docs/api-docs.json  # Путь к файлу документации
+    networks:
+      - microservices-network
+
+
+
+networks:
+  microservices-network:
+    driver: bridge
