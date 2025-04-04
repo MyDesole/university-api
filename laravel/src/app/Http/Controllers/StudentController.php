@@ -9,7 +9,10 @@ use App\Http\Resources\StudentResource;
 use App\Http\Resources\UniversityCollection;
 use App\Models\Student;
 use App\Models\University;
+use app\Repositories\Student\StudentRepositoryInterface;
+use app\Repositories\Visit\VisitRepositoryInterface;
 use ClickHouseDB\Client;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 
@@ -53,12 +56,18 @@ class StudentController extends Controller
      *     )
      * )
      */
-    public function index()
+
+    private StudentRepositoryInterface $studentRepository;
+    private VisitRepositoryInterface $visitRepository;
+
+    public function __construct(StudentRepositoryInterface $studentRepository, VisitRepositoryInterface $visitRepository) {
+        $this->studentRepository = $studentRepository;
+        $this->visitRepository = $visitRepository;
+    }
+
+    public function index(): StudentCollection
     {
-        $students = Cache::remember('students', 3600,  function () {
-            return  Student::all();
-        });
-        return StudentCollection::make($students);
+        return StudentCollection::make($this->studentRepository->getAll());
     }
 
     /**
@@ -84,10 +93,9 @@ class StudentController extends Controller
      *      )
      * )
      */
-    public function store(StoreStudentRequest $request) {
-        $data = $request->validated();
-        $student = Student::create($data);
-        return response()->json(StudentResource::make($student));
+    public function store(StoreStudentRequest $request): JsonResponse
+    {
+        return response()->json(StudentResource::make($this->studentRepository->create($request->validated())));
     }
 
     /**
@@ -110,9 +118,9 @@ class StudentController extends Controller
      */
 
 
-    public function show($id) {
-        $student = Student::findOrFail($id);
-        return StudentResource::make($student);
+    public function show(Student $student): JsonResponse
+    {
+        return response()->json(StudentResource::make($student)) ;
     }
 
     /**
@@ -146,11 +154,10 @@ class StudentController extends Controller
      *     )
      * )
      */
-    public function update(UpdateStudentRequest $request, $id) {
-        $data = $request->validated();
-        $student = Student::where('id', $id);
-        $student->update($data);
-        return response()->json(StudentResource::make($student->first()));
+    public function update(UpdateStudentRequest $request, int $id): JsonResponse
+    {
+        $this->studentRepository->update($id, $request->validated());
+        return response()->json(StudentResource::make($this->studentRepository->getById($id)));
     }
 
     /**
@@ -179,8 +186,9 @@ class StudentController extends Controller
      *     )
      * )
      */
-    public function destroy($id) {
-        Student::where('id', $id)->delete();
+    public function destroy(int $id): JsonResponse
+    {
+        $this->studentRepository->deleteById($id);
         return response()->json(['message' => 'Успешно!']);
     }
 
@@ -205,10 +213,9 @@ class StudentController extends Controller
      *     )
      * )
      */
-    public function search($searchTerm)
+    public function search(string $searchTerm): JsonResponse
     {
-        $universities = Student::search($searchTerm)->get();
-        return StudentCollection::make($universities);
+        return response()->json(StudentCollection::make(Student::search($searchTerm)->get())) ;
     }
 
     /**
@@ -248,45 +255,9 @@ class StudentController extends Controller
      *     )
      * )
      */
-    public function visit(Request $request, $studentId)
+    public function visit(Request $request, Student $student)
     {
-        if (!is_numeric($studentId)) {
-            return response()->json(['message' => 'Неверный student_id'], 400);
-        }
-
-        $universityId = $request->input('university_id');
-
-        if ($universityId == null) {
-            $universityId = Student::where('id', '=', $studentId)->first()->university_id ;
-        }
-
-        $clickhouse = new Client([
-            'host' => env('CLICKHOUSE_HOST', '127.0.0.1'),
-            'port' => env('CLICKHOUSE_PORT', '8123'),
-            'username' => env('CLICKHOUSE_USERNAME', 'mydesole'),
-            'password' => env('CLICKHOUSE_PASSWORD', '1008asdt'),
-        ]);
-        $clickhouse->database('default');
-
-        $data = [
-            [
-                'id' => 12,
-                'student_id' => $studentId,
-                'university_id' => $universityId,
-                'created_at' => now()->toDateTimeString(),
-                'updated_at' => now()->toDateTimeString(),
-            ]
-        ];
-
-        // Вставка данных
-        try {
-            $clickhouse->insert('student_visits', $data);
-            return response()->json(['message' => 'Успех!']);
-        } catch (\ClickHouseDB\Exception\TransportException $e) {
-            return response()->json(['message' => 'Ошибка подключения к ClickHouse'], 500);
-        } catch (\Exception $e) {
-            return response()->json(['message' => 'Ошибка при вставке данных'], 500);
-        }
+        $this->visitRepository->logStudentVisit($request->input('university_id'), $student);
     }
 
     /**
@@ -310,24 +281,15 @@ class StudentController extends Controller
      *     )
      * )
      */
-    public function getVisits($studentId)
+    public function getVisits(int $studentId): array
     {
-        $clickhouse = new Client([
-            'host' => env('CLICKHOUSE_HOST', '127.0.0.1'),
-            'port' => env('CLICKHOUSE_PORT', '8123'),
-            'username' => env('CLICKHOUSE_USERNAME', 'mydesole'),
-            'password' => env('CLICKHOUSE_PASSWORD', '1008asdt'),
-        ]);
-
-        $clickhouse->database('default');
-
-        $visits = null;
 
         if (is_numeric($studentId)) {
-            $visits = $clickhouse->select('SELECT * FROM student_visits WHERE student_id = :student_id', ['student_id' => $studentId]);        }
-        else {
-            $visits = $clickhouse->select('SELECT  * FROM student_visits');
+            return $this->visitRepository->getByStudentId($studentId);
         }
-        return $visits?->rows();
+        return $this->visitRepository->getAll();
     }
+
+    // TODO: add tests
+
 }

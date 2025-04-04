@@ -9,6 +9,7 @@ use App\Http\Resources\StudentCollection;
 use App\Http\Resources\StudentResource;
 use App\Models\Lesson;
 use App\Models\Student;
+use app\Repositories\Lesson\LessonRepositoryInterface;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 
@@ -31,20 +32,26 @@ class LessonController extends Controller
      * )
      */
 
+    public LessonRepositoryInterface $lessonRepository;
+
+    public function __construct(LessonRepositoryInterface $lessonRepository)
+    {
+        $this->lessonRepository = $lessonRepository;
+    }
+
     public function store(StoreLessonRequest $request)
     {
-        $data = $request->validated();
-        $lesson = Lesson::create($data);
-        return response()->json( LessonResource::make($lesson) );
+        return response()->json( LessonResource::make($this->lessonRepository->create($request->validated())) );
     }
 
 
     public function index()
     {
-        $lessons = Cache::remember('lessons', 3600, function () {
-            return Lesson::with('childrenRecursive', 'parent', 'children')->whereNull('parent_id')->get();
-        });
-
-        return LessonCollection::make($lessons);
+        return LessonCollection::make($this->lessonRepository->getAll());
     }
+
+    // TODO: add tests
+    // TODO: add swagger api docs
+
+
 }
